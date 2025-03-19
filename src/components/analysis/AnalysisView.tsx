@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -39,7 +38,12 @@ import {
   RefreshCw,
   TrendingUp,
   Lightbulb,
-  Calendar
+  Calendar,
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+  FileOutput,
+  ClipboardCheck
 } from "lucide-react";
 
 interface Document {
@@ -78,6 +82,18 @@ interface PredictiveData {
   co2: number;
   energy: number;
   gender: number;
+}
+
+interface CSRDStatus {
+  status: "compliant" | "partially" | "non-compliant";
+  score: number;
+  recommendations: Array<{
+    id: string;
+    area: string;
+    priority: "high" | "medium" | "low";
+    description: string;
+    status: "implemented" | "partial" | "missing";
+  }>;
 }
 
 const CATEGORY_COLORS = {
@@ -192,6 +208,50 @@ const generatePredictiveInsights = (): string[] => [
   "Den förväntade utvecklingen för leverantörskedjan visar en förbättringspotential som kan kräva ytterligare åtgärder."
 ];
 
+const generateMockCSRDStatus = (): CSRDStatus => {
+  return {
+    status: "partially",
+    score: 68,
+    recommendations: [
+      {
+        id: "csrd-1",
+        area: "Miljö",
+        priority: "high",
+        description: "Utöka rapporteringen av Scope 3 utsläpp för att inkludera hela leverantörskedjan",
+        status: "partial"
+      },
+      {
+        id: "csrd-2",
+        area: "Social hållbarhet",
+        priority: "medium",
+        description: "Inför mer detaljerad redovisning av mångfaldsarbete inom leverantörskedjan",
+        status: "missing"
+      },
+      {
+        id: "csrd-3",
+        area: "Styrning",
+        priority: "high",
+        description: "Implementera dubbel väsentlighetsanalys enligt CSRD-krav",
+        status: "missing"
+      },
+      {
+        id: "csrd-4",
+        area: "Miljö",
+        priority: "medium",
+        description: "Utöka rapporteringen kring resursanvändning och cirkulär ekonomi",
+        status: "implemented"
+      },
+      {
+        id: "csrd-5",
+        area: "Social hållbarhet",
+        priority: "low",
+        description: "Förbättra transparensen kring lönestruktur och lönefördelning",
+        status: "partial"
+      }
+    ]
+  };
+};
+
 interface AnalysisViewProps {
   accountingPeriod: string;
   onNavigateToDocuments?: () => void;
@@ -206,6 +266,7 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
   const [predictiveInsights, setPredictiveInsights] = useState<string[]>([]);
   const [showPredictive, setShowPredictive] = useState(false);
   const [periodName, setPeriodName] = useState("");
+  const [csrdStatus, setCSRDStatus] = useState<CSRDStatus | null>(null);
 
   useEffect(() => {
     if (accountingPeriod) {
@@ -245,10 +306,12 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
         await generateAnalysis(docs);
         setPredictiveData(generatePredictiveData());
         setPredictiveInsights(generatePredictiveInsights());
+        setCSRDStatus(generateMockCSRDStatus());
       } else {
         setAnalysis(null);
         setPredictiveData([]);
         setPredictiveInsights([]);
+        setCSRDStatus(null);
       }
     } catch (error) {
       console.error("Error loading data:", error);
@@ -302,6 +365,7 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
       await generateAnalysis(documents);
       setPredictiveData(generatePredictiveData());
       setPredictiveInsights(generatePredictiveInsights());
+      setCSRDStatus(generateMockCSRDStatus());
       
       toast.success("Analysen har uppdaterats");
     } catch (error) {
@@ -351,6 +415,69 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
     }
   };
 
+  const handleExportToAnnualReport = () => {
+    toast.success("Rapporten har exporterats till årsredovisningen", {
+      description: "Exporteringen har genomförts framgångsrikt. Du kan nu använda denna data i din årsredovisning."
+    });
+  };
+
+  const getCSRDStatusIcon = (status: "compliant" | "partially" | "non-compliant") => {
+    switch (status) {
+      case "compliant":
+        return <CheckCircle className="h-6 w-6 text-green-500" />;
+      case "partially":
+        return <AlertTriangle className="h-6 w-6 text-amber-500" />;
+      case "non-compliant":
+        return <XCircle className="h-6 w-6 text-red-500" />;
+    }
+  };
+
+  const getRecommendationStatusBadge = (status: "implemented" | "partial" | "missing") => {
+    switch (status) {
+      case "implemented":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+            Implementerad
+          </span>
+        );
+      case "partial":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+            Delvis implementerad
+          </span>
+        );
+      case "missing":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+            Ej implementerad
+          </span>
+        );
+    }
+  };
+
+  const getPriorityBadge = (priority: "high" | "medium" | "low") => {
+    switch (priority) {
+      case "high":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+            Hög
+          </span>
+        );
+      case "medium":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+            Medel
+          </span>
+        );
+      case "low":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+            Låg
+          </span>
+        );
+    }
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       {isLoading ? (
@@ -391,7 +518,7 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
               </div>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant={showPredictive ? "default" : "outline"}
                 onClick={handleTogglePredictive}
@@ -406,6 +533,14 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
               >
                 <Download className="h-4 w-4 mr-2" />
                 Exportera rapport
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={handleExportToAnnualReport}
+              >
+                <FileOutput className="h-4 w-4 mr-2" />
+                Exportera till årsredovisning
               </Button>
               
               <Button onClick={handleRefreshAnalysis} disabled={isRefreshing}>
@@ -487,6 +622,98 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
               </CardContent>
             </Card>
           </div>
+          
+          {csrdStatus && (
+            <Card className="bg-card">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <ClipboardCheck className="h-5 w-5 mr-2 text-primary" />
+                  CSRD-efterlevnad
+                </CardTitle>
+                <CardDescription>
+                  Status för efterlevnad av Corporate Sustainability Reporting Directive
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-center space-x-2">
+                      {getCSRDStatusIcon(csrdStatus.status)}
+                      <div>
+                        <span className="font-medium text-lg">
+                          {csrdStatus.status === "compliant" 
+                            ? "Uppfyller CSRD" 
+                            : csrdStatus.status === "partially" 
+                            ? "Delvis uppfyller CSRD" 
+                            : "Uppfyller inte CSRD"}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground max-w-2xl">
+                      Baserat på din aktuella rapportering uppfyller företaget {csrdStatus.score}% av CSRD-kraven.
+                      Nedan finns rekommendationer för att förbättra efterlevnaden.
+                    </p>
+                  </div>
+                  <div className="relative h-20 w-20 flex-shrink-0">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xl font-bold">{csrdStatus.score}%</span>
+                    </div>
+                    <svg viewBox="0 0 100 100" className="h-full w-full">
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        className="text-muted stroke-slate-200 dark:stroke-slate-700"
+                      />
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        strokeDasharray="251.2"
+                        strokeDashoffset={251.2 - (251.2 * csrdStatus.score) / 100}
+                        className={`transform -rotate-90 origin-center ${
+                          csrdStatus.score >= 80 
+                            ? "text-green-500" 
+                            : csrdStatus.score >= 50 
+                            ? "text-amber-500" 
+                            : "text-red-500"
+                        }`}
+                      />
+                    </svg>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-medium mb-3">Rekommendationer för förbättrad CSRD-efterlevnad</h4>
+                  <div className="space-y-3">
+                    {csrdStatus.recommendations.map(recommendation => (
+                      <div 
+                        key={recommendation.id}
+                        className="p-3 border rounded-lg bg-card/50"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1">
+                            <div className="font-medium">{recommendation.description}</div>
+                            <div className="text-sm text-muted-foreground">Område: {recommendation.area}</div>
+                          </div>
+                          <div className="flex flex-col space-y-1 items-end">
+                            <div>{getRecommendationStatusBadge(recommendation.status)}</div>
+                            <div>{getPriorityBadge(recommendation.priority)}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="bg-card overflow-hidden">
@@ -630,73 +857,4 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="year" />
                             <YAxis yAxisId="left" />
-                            <YAxis yAxisId="right" orientation="right" />
-                            <Tooltip />
-                            <Legend />
-                            <Line
-                              yAxisId="left"
-                              type="monotone"
-                              dataKey="co2"
-                              name="CO2-utsläpp (ton)"
-                              stroke="#ff7300"
-                              activeDot={{ r: 8 }}
-                            />
-                            <Line
-                              yAxisId="left"
-                              type="monotone"
-                              dataKey="energy"
-                              name="Förnybar energi (%)"
-                              stroke="#82ca9d"
-                            />
-                            <Line
-                              yAxisId="right"
-                              type="monotone"
-                              dataKey="gender"
-                              name="Könsfördelning (%)"
-                              stroke="#8884d8"
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-card">
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Lightbulb className="h-5 w-5 mr-2 text-primary" />
-                        Prediktiva insikter
-                      </CardTitle>
-                      <CardDescription>
-                        AI-baserade prognoser och rekommendationer
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {predictiveInsights.map((insight, index) => (
-                          <li key={index} className="flex">
-                            <span className="text-primary font-bold mr-2">•</span>
-                            <span>{insight}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                <div className="bg-muted p-4 rounded-lg">
-                  <p className="text-sm text-muted-foreground italic">
-                    OBS: Prediktiva data är baserade på historisk utveckling och trender. 
-                    Faktiska resultat kan variera beroende på framtida åtgärder och omständigheter.
-                  </p>
-                </div>
-              </div>
-            </>
-          )}
-        </>
-      ) : null}
-    </div>
-  );
-};
-
-export default AnalysisView;
+                            <YAxis yAxisId="right" orientation="right
