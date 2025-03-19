@@ -1,0 +1,170 @@
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import DocumentUpload from "@/components/documents/DocumentUpload";
+import DocumentList from "@/components/documents/DocumentList";
+import { Plus } from "lucide-react";
+
+interface Document {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+  uploadDate: string;
+}
+
+const Documents = () => {
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const navigate = useNavigate();
+
+  // Check authentication
+  useEffect(() => {
+    const token = localStorage.getItem("auth-token");
+    if (!token) {
+      navigate("/");
+    }
+  }, [navigate]);
+
+  // Handle adding new document
+  const handleAddNew = () => {
+    setIsUploadDialogOpen(true);
+  };
+
+  // Handle upload completion
+  const handleUploadComplete = () => {
+    setIsUploadDialogOpen(false);
+  };
+
+  // Handle viewing document details
+  const handleViewDocument = (document: Document) => {
+    setSelectedDocument(document);
+    setIsViewDialogOpen(true);
+  };
+
+  return (
+    <div className="min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dokument</h1>
+          <p className="text-muted-foreground">
+            Hantera hållbarhetsrelaterade dokument
+          </p>
+        </div>
+        
+        <Button onClick={handleAddNew}>
+          <Plus className="h-4 w-4 mr-2" />
+          Ladda upp
+        </Button>
+      </div>
+      
+      <DocumentList 
+        onAddNew={handleAddNew}
+        onViewDocument={handleViewDocument}
+      />
+      
+      {/* Upload Dialog */}
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Ladda upp dokument</DialogTitle>
+            <DialogDescription>
+              Ladda upp ett hållbarhetsrelaterat dokument för analys
+            </DialogDescription>
+          </DialogHeader>
+          
+          <DocumentUpload 
+            onUploadComplete={handleUploadComplete}
+            onCancel={() => setIsUploadDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* View Document Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Dokumentdetaljer</DialogTitle>
+            <DialogDescription>
+              Information om dokumentet
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedDocument && (
+            <div className="space-y-4 py-2">
+              <div className="space-y-1">
+                <h3 className="font-medium text-sm">Namn</h3>
+                <p>{selectedDocument.name}</p>
+              </div>
+              
+              {selectedDocument.description && (
+                <div className="space-y-1">
+                  <h3 className="font-medium text-sm">Beskrivning</h3>
+                  <p className="text-muted-foreground">{selectedDocument.description}</p>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <h3 className="font-medium text-sm">Kategori</h3>
+                  <p className="text-muted-foreground">
+                    {selectedDocument.category.split('_').map(word => 
+                      word.charAt(0).toUpperCase() + word.slice(1)
+                    ).join(' ')}
+                  </p>
+                </div>
+                
+                <div className="space-y-1">
+                  <h3 className="font-medium text-sm">Uppladdad</h3>
+                  <p className="text-muted-foreground">
+                    {new Date(selectedDocument.uploadDate).toLocaleDateString("sv-SE", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric"
+                    })}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <h3 className="font-medium text-sm">Filnamn</h3>
+                  <p className="text-muted-foreground">{selectedDocument.fileName}</p>
+                </div>
+                
+                <div className="space-y-1">
+                  <h3 className="font-medium text-sm">Filstorlek</h3>
+                  <p className="text-muted-foreground">
+                    {selectedDocument.fileSize < 1024
+                      ? `${selectedDocument.fileSize} B`
+                      : selectedDocument.fileSize < 1048576
+                      ? `${(selectedDocument.fileSize / 1024).toFixed(1)} KB`
+                      : `${(selectedDocument.fileSize / 1048576).toFixed(1)} MB`}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setIsViewDialogOpen(false)}
+                >
+                  Stäng
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default Documents;
