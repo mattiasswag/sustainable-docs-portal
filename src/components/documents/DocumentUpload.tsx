@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,7 +168,7 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="w-full space-y-6 animate-fade-in">
       {periodInfo && (
         <div className="bg-muted p-3 rounded-md">
           <p className="text-sm font-medium">Dokument laddas upp till räkenskapsperiod:</p>
@@ -178,7 +179,7 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
         </div>
       )}
       
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6 w-full">
         <div className="space-y-4">          
           <div className="space-y-2">
             <Label htmlFor="category" className="font-medium">
@@ -214,13 +215,13 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
               onDragOver={handleDrag}
               onDrop={handleDrop}
               className={`
-                border-2 border-dashed rounded-lg p-6 transition-all duration-200
+                border-2 border-dashed rounded-lg p-6 transition-all duration-200 w-full
                 ${dragActive ? "border-primary bg-primary/5" : "border-border"}
                 ${file ? "bg-secondary/50" : ""}
               `}
             >
               {!file ? (
-                <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                <div className="flex flex-col items-center justify-center space-y-4 text-center w-full">
                   <div className="rounded-full bg-primary/10 p-3">
                     <Upload className="h-6 w-6 text-primary" />
                   </div>
@@ -244,8 +245,8 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-4">
-                  <div className="rounded-md bg-primary/10 p-2">
+                <div className="flex items-center space-x-4 w-full">
+                  <div className="rounded-md bg-primary/10 p-2 flex-shrink-0">
                     <File className="h-8 w-8 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -261,7 +262,7 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
                     variant="ghost" 
                     size="icon" 
                     onClick={() => setFile(null)}
-                    className="rounded-full hover:bg-destructive/10 hover:text-destructive"
+                    className="rounded-full hover:bg-destructive/10 hover:text-destructive flex-shrink-0"
                   >
                     <X className="h-4 w-4" />
                     <span className="sr-only">Ta bort fil</span>
