@@ -13,7 +13,9 @@ import {
   FileText,
   Building2,
   Upload,
-  Loader2
+  Loader2,
+  Calendar,
+  Tag
 } from "lucide-react";
 import AccountingPeriodSelector from "@/components/accounting/AccountingPeriodSelector";
 
@@ -25,11 +27,24 @@ interface CompanyData {
   [key: string]: string;
 }
 
+interface Document {
+  id: string;
+  category: string;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+  uploadDate: string;
+  accountingPeriod?: string;
+}
+
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [company, setCompany] = useState<CompanyData | null>(null);
   const [userData, setUserData] = useState<any>(null);
   const [currentPeriod, setCurrentPeriod] = useState("");
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [latestDocument, setLatestDocument] = useState<Document | null>(null);
+  const [documentCount, setDocumentCount] = useState(0);
   const navigate = useNavigate();
 
   // Check authentication and load data
@@ -59,6 +74,13 @@ const Dashboard = () => {
         if (companyData) {
           setCompany(JSON.parse(companyData));
         }
+
+        // Load documents
+        const savedDocs = localStorage.getItem("documents");
+        if (savedDocs) {
+          const parsedDocs = JSON.parse(savedDocs);
+          setDocuments(parsedDocs);
+        }
       } catch (error) {
         console.error("Error loading dashboard data:", error);
       } finally {
@@ -68,6 +90,55 @@ const Dashboard = () => {
     
     checkAuth();
   }, [navigate]);
+
+  // Update document stats when period or documents change
+  useEffect(() => {
+    if (documents.length > 0) {
+      // Filter documents by current period
+      const periodDocs = currentPeriod 
+        ? documents.filter(doc => !doc.accountingPeriod || doc.accountingPeriod === currentPeriod)
+        : documents;
+      
+      setDocumentCount(periodDocs.length);
+      
+      // Find latest document
+      if (periodDocs.length > 0) {
+        const latest = [...periodDocs].sort((a, b) => 
+          new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
+        )[0];
+        setLatestDocument(latest);
+      } else {
+        setLatestDocument(null);
+      }
+    } else {
+      setDocumentCount(0);
+      setLatestDocument(null);
+    }
+  }, [documents, currentPeriod]);
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("sv-SE", {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    });
+  };
+
+  const getCategoryLabel = (value: string) => {
+    const categoryOptions = [
+      { value: "gender_equality", label: "Jämställdhet" },
+      { value: "environment", label: "Miljö & Klimat" },
+      { value: "social_responsibility", label: "Socialt ansvar" },
+      { value: "governance", label: "Bolagsstyrning" },
+      { value: "supply_chain", label: "Leverantörskedja" },
+      { value: "human_rights", label: "Mänskliga rättigheter" },
+      { value: "diversity", label: "Mångfald & Inkludering" },
+      { value: "other", label: "Övrigt" }
+    ];
+    
+    const category = categoryOptions.find(cat => cat.value === value);
+    return category ? category.label : value;
+  };
 
   if (isLoading) {
     return (
@@ -107,7 +178,92 @@ const Dashboard = () => {
         </div>
         
         {/* Main dashboard content */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Document Overview */}
+          <Card className="bg-card">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center">
+                  <FileText className="h-5 w-5 mr-2 text-primary" />
+                  Dokumentöversikt
+                </CardTitle>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate("/documents")}
+                >
+                  Visa alla
+                </Button>
+              </div>
+              <CardDescription>
+                Dokumentinformation för vald räkenskapsperiod
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-secondary/40 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Antal dokument</h3>
+                    <p className="text-2xl font-bold">{documentCount}</p>
+                  </div>
+                  
+                  <div className="bg-secondary/40 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Senaste uppladdning</h3>
+                    <p className="text-lg font-medium truncate">
+                      {latestDocument ? formatDate(latestDocument.uploadDate) : "Inga dokument"}
+                    </p>
+                  </div>
+                </div>
+                
+                {latestDocument ? (
+                  <div className="border rounded-lg p-4">
+                    <h3 className="text-sm font-medium mb-2">Senaste dokumentet</h3>
+                    <div className="flex items-start space-x-3">
+                      <div className="rounded-md bg-primary/10 p-2">
+                        <FileText className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{latestDocument.fileName}</p>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            <span>{formatDate(latestDocument.uploadDate)}</span>
+                          </div>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Tag className="h-3 w-3 mr-1" />
+                            <span>{getCategoryLabel(latestDocument.category)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-3"
+                      onClick={() => navigate("/documents")}
+                    >
+                      Hantera dokument
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <FileText className="h-12 w-12 text-muted-foreground mb-3" />
+                    <h3 className="text-lg font-medium mb-2">Inga dokument</h3>
+                    <p className="text-muted-foreground max-w-md mb-4">
+                      Du har inte laddat upp några dokument för denna räkenskapsperiod.
+                    </p>
+                    <Button 
+                      onClick={() => navigate("/documents")}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Ladda upp dokument
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
           {/* Company information */}
           <Card className="bg-card">
             <CardHeader className="pb-2">
@@ -176,26 +332,6 @@ const Dashboard = () => {
                   </Button>
                 </div>
               )}
-            </CardContent>
-          </Card>
-          
-          {/* Document Upload CTA */}
-          <Card className="bg-card">
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center py-8">
-                <FileText className="h-16 w-16 text-primary mb-4" />
-                <h3 className="text-xl font-medium mb-2">Hantera hållbarhetsdokument</h3>
-                <p className="text-muted-foreground max-w-md mb-6">
-                  Ladda upp, kategorisera och analysera dina hållbarhetsdokument enkelt.
-                </p>
-                <Button 
-                  onClick={() => navigate("/documents")}
-                  className="mb-2"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Hantera dokument
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>
