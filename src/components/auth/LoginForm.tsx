@@ -31,6 +31,9 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
       // Simulate API call with timeout
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Clear all localStorage to start fresh
+      localStorage.clear();
+      
       // Simple "mock" auth for demo
       // In production, this would be a real API call
       if (email === "demo@example.com" && password === "password") {

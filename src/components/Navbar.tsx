@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -52,10 +51,9 @@ const Navbar = () => {
 
   // Updated logout function with proper feedback and navigation
   const handleLogout = () => {
-    // Clear all authentication data
-    localStorage.removeItem("auth-token");
-    localStorage.removeItem("user-data");
-    localStorage.removeItem("company-data");
+    // Clear all localStorage to start fresh
+    localStorage.clear();
+    
     setIsLoggedIn(false);
     
     // Show confirmation toast
