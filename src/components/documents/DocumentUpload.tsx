@@ -29,23 +29,21 @@ const categoryOptions = [
 interface DocumentUploadProps {
   onUploadComplete?: (document: any) => void;
   onCancel?: () => void;
+  accountingPeriod?: string;
 }
 
 interface DocumentData {
   id: string;
-  name: string;
-  description: string;
   category: string;
   fileName: string;
   fileSize: number;
   fileType: string;
   uploadDate: string;
+  accountingPeriod: string;
   file?: File;
 }
 
-const DocumentUpload = ({ onUploadComplete, onCancel }: DocumentUploadProps) => {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: DocumentUploadProps) => {
   const [category, setCategory] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -109,8 +107,8 @@ const DocumentUpload = ({ onUploadComplete, onCancel }: DocumentUploadProps) => 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !category || !file) {
-      toast.error("Vänligen fyll i alla obligatoriska fält och ladda upp en fil.");
+    if (!category || !file) {
+      toast.error("Vänligen välj en kategori och ladda upp en fil.");
       return;
     }
     
@@ -120,16 +118,15 @@ const DocumentUpload = ({ onUploadComplete, onCancel }: DocumentUploadProps) => 
       // Simulate API call with timeout
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Create document object
+      // Create document object with minimal data
       const newDocument: DocumentData = {
         id: `doc-${Date.now()}`,
-        name,
-        description,
         category,
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type,
         uploadDate: new Date().toISOString(),
+        accountingPeriod: accountingPeriod || "default",
         file
       };
       
@@ -147,8 +144,6 @@ const DocumentUpload = ({ onUploadComplete, onCancel }: DocumentUploadProps) => 
       }
       
       // Reset form
-      setName("");
-      setDescription("");
       setCategory("");
       setFile(null);
     } catch (error) {
@@ -162,20 +157,7 @@ const DocumentUpload = ({ onUploadComplete, onCancel }: DocumentUploadProps) => 
   return (
     <div className="space-y-6 animate-fade-in">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="font-medium">
-              Dokumentnamn <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ange ett beskrivande namn på dokumentet"
-              required
-            />
-          </div>
-          
+        <div className="space-y-4">          
           <div className="space-y-2">
             <Label htmlFor="category" className="font-medium">
               Kategori <span className="text-destructive">*</span>
@@ -194,19 +176,6 @@ const DocumentUpload = ({ onUploadComplete, onCancel }: DocumentUploadProps) => 
                 </SelectGroup>
               </SelectContent>
             </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description" className="font-medium">
-              Beskrivning
-            </Label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Beskriv dokumentet och dess innehåll..."
-              className="w-full min-h-[100px] px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
           </div>
           
           <div className="space-y-2">

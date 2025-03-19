@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import LoginForm from "@/components/auth/LoginForm";
-import { ArrowRight, FileText, BarChart2, Check, Shield } from "lucide-react";
+import { ArrowRight, FileText, Shield, Check } from "lucide-react";
 
 const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -25,7 +25,7 @@ const Index = () => {
     }
   }, [isLoggedIn, navigate]);
 
-  // Features list
+  // Features list - simplified
   const features = [
     {
       icon: <FileText className="h-6 w-6" />,
@@ -33,25 +33,18 @@ const Index = () => {
       description: "Ladda upp och organisera hållbarhetsdokument på ett säkert och strukturerat sätt."
     },
     {
-      icon: <BarChart2 className="h-6 w-6" />,
-      title: "Avancerad analys",
-      description: "Extrahera nyckeltal och insikter automatiskt med hjälp av AI-teknologi."
-    },
-    {
       icon: <Shield className="h-6 w-6" />,
-      title: "CSRD-kompatibelt",
-      description: "Generera underlag för hållbarhetsrapportering enligt CSRD-direktivet."
+      title: "AI-analys",
+      description: "Ladda upp dokument och låt AI:n analysera innehållet automatiskt."
     }
   ];
 
-  // Benefits list
+  // Benefits list - simplified
   const benefits = [
-    "Minskad arbetsbelastning för hållbarhetsrapportering",
-    "Automatiserad dataextrahering från dokument",
-    "Intelligenta insikter för förbättrad hållbarhetsstrategi",
-    "Anpassat för svenska företag och regelverk",
-    "Säker datalagring och hantering",
-    "Kontinuerligt uppdaterade funktioner"
+    "Automatiserad dokumentanalys med AI",
+    "Gruppering efter räkenskapsperioder",
+    "Enkel dokumenthantering",
+    "Anpassat för svenska företag och regelverk"
   ];
 
   return (
@@ -70,11 +63,10 @@ const Index = () => {
                 Förenkla din hållbarhetsrapportering
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
-                Hållbarhetsrapportering som <span className="text-primary">aldrig förr</span>
+                Hållbarhetsrapportering med <span className="text-primary">AI</span>
               </h1>
               <p className="text-xl text-muted-foreground">
-                Ladda upp dina hållbarhetsdokument och låt AI:n extrahera nyckeltal, 
-                skapa insikter och förbereda underlag för CSRD-rapportering.
+                Ladda upp dina hållbarhetsdokument och låt AI:n analysera innehållet automatiskt.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -125,17 +117,17 @@ const Index = () => {
         </div>
       </div>
       
-      {/* Features section */}
+      {/* Features section - simplified */}
       <section className="py-20 bg-secondary/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl font-bold mb-4">Allt du behöver för CSRD-rapportering</h2>
+            <h2 className="text-3xl font-bold mb-4">Enkelt och effektivt</h2>
             <p className="text-xl text-muted-foreground">
-              Vår plattform förenklar hanteringen av hållbarhetsdata och hjälper dig att uppfylla CSRD-kraven.
+              Vår plattform förenklar hanteringen av hållbarhetsdata med hjälp av AI.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {features.map((feature, index) => (
               <div 
                 key={index}
@@ -152,14 +144,14 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Benefits section */}
+      {/* Benefits section - simplified */}
       <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="max-w-xl">
               <h2 className="text-3xl font-bold mb-6">Fördelar för ditt företag</h2>
               <p className="text-xl text-muted-foreground mb-8">
-                Vår plattform hjälper dig att effektivisera hållbarhetsrapporteringen och få värdefulla insikter.
+                Vår plattform hjälper dig att effektivisera hållbarhetsrapporteringen.
               </p>
               
               <ul className="space-y-4">
@@ -196,25 +188,8 @@ const Index = () => {
         </div>
       </section>
       
-      {/* CTA section */}
-      <section className="py-16 bg-primary/5">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-3xl">
-          <h2 className="text-3xl font-bold mb-4">Redo att förenkla din hållbarhetsrapportering?</h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            Börja använda vår plattform idag och spara tid samtidigt som du förbättrar kvaliteten på din rapportering.
-          </p>
-          <Button 
-            size="lg" 
-            onClick={() => setShowLoginForm(true)}
-          >
-            Kom igång nu
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      </section>
-      
       {/* Footer */}
-      <footer className="py-8 border-t bg-muted/20">
+      <footer className="py-8 border-t bg-muted/20 mt-auto">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">

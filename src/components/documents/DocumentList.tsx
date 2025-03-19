@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,21 +45,21 @@ const getCategoryLabel = (value: string) => {
 
 interface Document {
   id: string;
-  name: string;
-  description: string;
   category: string;
   fileName: string;
   fileSize: number;
   fileType: string;
   uploadDate: string;
+  accountingPeriod?: string;
 }
 
 interface DocumentListProps {
   onAddNew?: () => void;
   onViewDocument?: (document: Document) => void;
+  accountingPeriod?: string;
 }
 
-const DocumentList = ({ onAddNew, onViewDocument }: DocumentListProps) => {
+const DocumentList = ({ onAddNew, onViewDocument, accountingPeriod = "default" }: DocumentListProps) => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -88,11 +89,14 @@ const DocumentList = ({ onAddNew, onViewDocument }: DocumentListProps) => {
   }, []);
 
   const filteredDocuments = documents.filter(doc => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        doc.description.toLowerCase().includes(searchTerm.toLowerCase());
+    // Filter by accounting period first
+    const matchesPeriod = !accountingPeriod || !doc.accountingPeriod || doc.accountingPeriod === accountingPeriod;
+    
+    // Then filter by search term and category
+    const matchesSearch = doc.fileName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "all" || doc.category === categoryFilter;
     
-    return matchesSearch && matchesCategory;
+    return matchesPeriod && matchesSearch && matchesCategory;
   });
 
   const formatFileSize = (bytes: number) => {
@@ -215,7 +219,7 @@ const DocumentList = ({ onAddNew, onViewDocument }: DocumentListProps) => {
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-lg truncate">{doc.name}</h3>
+                    <h3 className="font-medium text-lg truncate">{doc.fileName}</h3>
                     
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1 mb-2">
                       <div className="flex items-center text-sm text-muted-foreground">
@@ -232,12 +236,6 @@ const DocumentList = ({ onAddNew, onViewDocument }: DocumentListProps) => {
                         {formatFileSize(doc.fileSize)}
                       </div>
                     </div>
-                    
-                    {doc.description && (
-                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                        {doc.description}
-                      </p>
-                    )}
                   </div>
                   
                   <div className="flex items-center space-x-2 ml-4">

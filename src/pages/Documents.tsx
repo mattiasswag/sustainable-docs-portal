@@ -5,23 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import DocumentUpload from "@/components/documents/DocumentUpload";
 import DocumentList from "@/components/documents/DocumentList";
+import AccountingPeriodSelector from "@/components/accounting/AccountingPeriodSelector";
 import { Plus } from "lucide-react";
 
 interface Document {
   id: string;
-  name: string;
-  description: string;
   category: string;
   fileName: string;
   fileSize: number;
   fileType: string;
   uploadDate: string;
+  accountingPeriod?: string;
 }
 
 const Documents = () => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [currentPeriod, setCurrentPeriod] = useState("");
   const navigate = useNavigate();
 
   // Check authentication
@@ -50,28 +51,38 @@ const Documents = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dokument</h1>
-          <p className="text-muted-foreground">
-            Hantera hållbarhetsrelaterade dokument
-          </p>
+      <div className="flex flex-col space-y-4 mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dokument</h1>
+            <p className="text-muted-foreground">
+              Hantera hållbarhetsrelaterade dokument
+            </p>
+          </div>
+          
+          <Button onClick={handleAddNew}>
+            <Plus className="h-4 w-4 mr-2" />
+            Ladda upp
+          </Button>
         </div>
         
-        <Button onClick={handleAddNew}>
-          <Plus className="h-4 w-4 mr-2" />
-          Ladda upp
-        </Button>
+        <div className="w-full md:max-w-md">
+          <AccountingPeriodSelector
+            value={currentPeriod}
+            onChange={setCurrentPeriod}
+          />
+        </div>
       </div>
       
       <DocumentList 
         onAddNew={handleAddNew}
         onViewDocument={handleViewDocument}
+        accountingPeriod={currentPeriod}
       />
       
       {/* Upload Dialog */}
       <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Ladda upp dokument</DialogTitle>
             <DialogDescription>
@@ -82,13 +93,14 @@ const Documents = () => {
           <DocumentUpload 
             onUploadComplete={handleUploadComplete}
             onCancel={() => setIsUploadDialogOpen(false)}
+            accountingPeriod={currentPeriod}
           />
         </DialogContent>
       </Dialog>
       
       {/* View Document Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Dokumentdetaljer</DialogTitle>
             <DialogDescription>
@@ -99,16 +111,9 @@ const Documents = () => {
           {selectedDocument && (
             <div className="space-y-4 py-2">
               <div className="space-y-1">
-                <h3 className="font-medium text-sm">Namn</h3>
-                <p>{selectedDocument.name}</p>
+                <h3 className="font-medium text-sm">Filnamn</h3>
+                <p>{selectedDocument.fileName}</p>
               </div>
-              
-              {selectedDocument.description && (
-                <div className="space-y-1">
-                  <h3 className="font-medium text-sm">Beskrivning</h3>
-                  <p className="text-muted-foreground">{selectedDocument.description}</p>
-                </div>
-              )}
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
@@ -133,11 +138,6 @@ const Documents = () => {
               </div>
               
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <h3 className="font-medium text-sm">Filnamn</h3>
-                  <p className="text-muted-foreground">{selectedDocument.fileName}</p>
-                </div>
-                
                 <div className="space-y-1">
                   <h3 className="font-medium text-sm">Filstorlek</h3>
                   <p className="text-muted-foreground">
