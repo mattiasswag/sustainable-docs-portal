@@ -176,6 +176,9 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
                 </SelectGroup>
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">
+              Välj huvudkategori för dokumentet - innehållet kommer analyseras automatiskt
+            </p>
           </div>
           
           <div className="space-y-2">
