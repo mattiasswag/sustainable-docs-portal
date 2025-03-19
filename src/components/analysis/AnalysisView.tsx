@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -34,7 +35,6 @@ import {
   Building,
   FileText,
   Loader2,
-  Download,
   RefreshCw,
   TrendingUp,
   Lightbulb,
@@ -551,6 +551,7 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
             </div>
           </div>
           
+          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <Card className="bg-card">
               <CardHeader className="pb-2">
@@ -615,6 +616,7 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
             </Card>
           </div>
           
+          {/* CSRD Status */}
           {csrdStatus && (
             <Card className="bg-card">
               <CardHeader>
@@ -724,6 +726,7 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
             </Card>
           )}
           
+          {/* Charts and Insights */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="bg-card overflow-hidden">
               <CardHeader>
@@ -790,6 +793,7 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
             </Card>
           </div>
           
+          {/* Metrics Detail */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -835,6 +839,7 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
             </CardContent>
           </Card>
           
+          {/* Predictive Analysis Section */}
           {showPredictive && (
             <>
               <Separator className="my-8" />
@@ -846,4 +851,86 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
                 </p>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                  <Card className="bg-
+                  <Card className="bg-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <TrendingUp className="h-5 w-5 mr-2 text-primary" />
+                        Prognostiserade trender
+                      </CardTitle>
+                      <CardDescription>
+                        Förväntad utveckling av nyckeltal över tid
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[350px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={predictiveData}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="year" />
+                            <YAxis yAxisId="left" />
+                            <YAxis yAxisId="right" orientation="right" />
+                            <Tooltip />
+                            <Legend />
+                            <Line
+                              yAxisId="left"
+                              type="monotone"
+                              dataKey="co2"
+                              name="CO2-utsläpp (ton)"
+                              stroke="#ff7300"
+                              activeDot={{ r: 8 }}
+                            />
+                            <Line 
+                              yAxisId="left" 
+                              type="monotone" 
+                              dataKey="energy" 
+                              name="Förnybar energi (%)" 
+                              stroke="#82ca9d" 
+                            />
+                            <Line 
+                              yAxisId="right" 
+                              type="monotone" 
+                              dataKey="gender" 
+                              name="Könsfördelning (%)" 
+                              stroke="#8884d8" 
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Lightbulb className="h-5 w-5 mr-2 text-primary" />
+                        Prediktiva insikter
+                      </CardTitle>
+                      <CardDescription>
+                        AI-genererade framtidsprognoser baserade på nuvarande trender
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {predictiveInsights.map((insight, index) => (
+                          <li key={index} className="flex">
+                            <span className="text-primary font-bold mr-2">•</span>
+                            <span>{insight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </>
+          )}
+        </>
+      ) : null}
+    </div>
+  );
+};
+
+export default AnalysisView;
