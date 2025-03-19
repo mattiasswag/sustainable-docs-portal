@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -528,14 +527,6 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
                 {showPredictive ? "Dölj prediktiv analys" : "Visa prediktiv analys"}
               </Button>
               
-              <Button
-                variant="outline"
-                onClick={() => toast.info("Nedladdningsfunktionen är inte implementerad i denna demo.")}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Exportera rapport
-              </Button>
-              
               <Button 
                 variant="outline"
                 onClick={handleExportToAnnualReport}
@@ -921,3 +912,4 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
 };
 
 export default AnalysisView;
+
