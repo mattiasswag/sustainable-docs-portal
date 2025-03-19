@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -67,7 +66,6 @@ interface AnalysisSummary {
   lastUpdated: string;
 }
 
-// Mock category colors
 const CATEGORY_COLORS = {
   gender_equality: "#8884d8",
   environment: "#82ca9d",
@@ -79,7 +77,6 @@ const CATEGORY_COLORS = {
   other: "#777777"
 };
 
-// Category to icon mapping
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   gender_equality: <Users className="h-5 w-5" />,
   environment: <Leaf className="h-5 w-5" />,
@@ -91,17 +88,14 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   other: <FileText className="h-5 w-5" />
 };
 
-// Helper to safely get color
 const getCategoryColor = (category: string) => {
   return (CATEGORY_COLORS as any)[category] || "#777777";
 };
 
-// Helper to safely get icon
 const getCategoryIcon = (category: string) => {
   return CATEGORY_ICONS[category] || <FileText className="h-5 w-5" />;
 };
 
-// Sample metrics data for demo
 const generateMockMetrics = (): KeyMetric[] => [
   {
     id: "metric-1",
@@ -159,7 +153,6 @@ const generateMockMetrics = (): KeyMetric[] => [
   }
 ];
 
-// Sample insights for demo
 const generateMockInsights = (): string[] => [
   "Företaget uppvisar en positiv trend när det gäller könsfördelning med en ökning på 5% jämfört med föregående period.",
   "CO2-utsläppen har minskat med 8%, vilket visar på effektiviteten i företagets miljöprogram.",
@@ -175,23 +168,18 @@ const AnalysisView = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisSummary | null>(null);
 
-  // Load documents and generate analysis
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       
       try {
-        // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Load documents from localStorage
         const savedDocs = localStorage.getItem("documents");
         const docs = savedDocs ? JSON.parse(savedDocs) : [];
         setDocuments(docs);
         
-        // Check if we have any documents to analyze
         if (docs.length > 0) {
-          // Generate mock analysis
           await generateAnalysis(docs);
         } else {
           setAnalysis(null);
@@ -207,27 +195,22 @@ const AnalysisView = () => {
     loadData();
   }, []);
 
-  // Generate analysis based on documents
   const generateAnalysis = async (docs: Document[]) => {
     try {
-      // Simulate analysis generation
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Count documents by category
       const categoryCounts: Record<string, number> = {};
       docs.forEach(doc => {
         categoryCounts[doc.category] = (categoryCounts[doc.category] || 0) + 1;
       });
       
-      // Convert to array format for charts
       const categoryData = Object.entries(categoryCounts).map(([name, count]) => ({
         name,
         count
       }));
       
-      // Create analysis summary
       const analysisSummary: AnalysisSummary = {
-        completeness: Math.min(Math.round((docs.length / 10) * 100), 100), // Assume 10 docs is "complete"
+        completeness: Math.min(Math.round((docs.length / 10) * 100), 100),
         documentCount: docs.length,
         categories: categoryData,
         metrics: generateMockMetrics(),
@@ -242,7 +225,6 @@ const AnalysisView = () => {
     }
   };
 
-  // Handle refresh analysis
   const handleRefreshAnalysis = async () => {
     if (documents.length === 0) {
       toast.error("Det finns inga dokument att analysera. Ladda upp dokument först.");
@@ -252,10 +234,8 @@ const AnalysisView = () => {
     setIsRefreshing(true);
     
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Regenerate analysis
       await generateAnalysis(documents);
       
       toast.success("Analysen har uppdaterats");
@@ -267,7 +247,6 @@ const AnalysisView = () => {
     }
   };
 
-  // Format date to locale format
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("sv-SE", {
       year: "numeric",
@@ -278,7 +257,6 @@ const AnalysisView = () => {
     });
   };
 
-  // Get trend indicator component
   const getTrendIndicator = (trend?: "up" | "down" | "neutral", changePercentage?: number) => {
     if (!trend || trend === "neutral") {
       return <span className="text-muted-foreground">→ Oförändrad</span>;
@@ -322,7 +300,6 @@ const AnalysisView = () => {
         </Card>
       ) : analysis ? (
         <>
-          {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-2xl font-bold tracking-tight">Hållbarhetsanalys</h2>
@@ -356,7 +333,6 @@ const AnalysisView = () => {
             </div>
           </div>
           
-          {/* Summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <Card className="bg-card">
               <CardHeader className="pb-2">
@@ -421,7 +397,6 @@ const AnalysisView = () => {
             </Card>
           </div>
           
-          {/* Document category distribution */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="bg-card overflow-hidden">
               <CardHeader>
@@ -442,7 +417,10 @@ const AnalysisView = () => {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name.split('_').join(' ')} (${(percent * 100).toFixed(0)}%)`}
+                        label={({ name, percent }) => {
+                          const displayName = typeof name === 'string' ? name.split('_').join(' ') : name;
+                          return `${displayName} (${(percent * 100).toFixed(0)}%)`;
+                        }}
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="count"
@@ -452,7 +430,9 @@ const AnalysisView = () => {
                         ))}
                       </Pie>
                       <Tooltip 
-                        formatter={(value, name) => [value, name.split('_').join(' ')]}
+                        formatter={(value, name) => {
+                          return [value, typeof name === 'string' ? name.split('_').join(' ') : name];
+                        }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -460,7 +440,6 @@ const AnalysisView = () => {
               </CardContent>
             </Card>
             
-            {/* Key metrics */}
             <Card className="bg-card overflow-hidden">
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -505,7 +484,6 @@ const AnalysisView = () => {
             </Card>
           </div>
           
-          {/* Detailed metrics */}
           <Card className="bg-card">
             <CardHeader>
               <CardTitle>Detaljerade mätvärden</CardTitle>
@@ -537,7 +515,6 @@ const AnalysisView = () => {
             </CardContent>
           </Card>
           
-          {/* Insights and recommendations */}
           <Card className="bg-card">
             <CardHeader>
               <CardTitle>Insikter och rekommendationer</CardTitle>
@@ -559,7 +536,6 @@ const AnalysisView = () => {
             </CardContent>
           </Card>
           
-          {/* CSRD compliance summary */}
           <Card className="bg-card border-primary/20">
             <CardHeader className="pb-2">
               <CardTitle>CSRD-efterlevnad</CardTitle>
@@ -641,3 +617,4 @@ const AnalysisView = () => {
 };
 
 export default AnalysisView;
+

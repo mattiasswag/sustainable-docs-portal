@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,7 @@ import { toast } from "sonner";
 import {
   File,
   FileText,
-  FilePdf,
+  FileIcon,
   FileSpreadsheet,
   Calendar,
   Tag,
@@ -26,7 +25,6 @@ import {
   Plus
 } from "lucide-react";
 
-// Document category options and their labels
 const categoryOptions = [
   { value: "all", label: "Alla kategorier" },
   { value: "gender_equality", label: "Jämställdhet" },
@@ -39,7 +37,6 @@ const categoryOptions = [
   { value: "other", label: "Övrigt" }
 ];
 
-// Find category label by value
 const getCategoryLabel = (value: string) => {
   const category = categoryOptions.find(cat => cat.value === value);
   return category ? category.label : value;
@@ -73,10 +70,8 @@ const DocumentList = ({ onAddNew, onViewDocument }: DocumentListProps) => {
       setIsLoading(true);
       
       try {
-        // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Load from localStorage
         const savedDocs = localStorage.getItem("documents");
         if (savedDocs) {
           setDocuments(JSON.parse(savedDocs));
@@ -92,7 +87,6 @@ const DocumentList = ({ onAddNew, onViewDocument }: DocumentListProps) => {
     loadDocuments();
   }, []);
 
-  // Filter documents based on search and category
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                         doc.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -101,14 +95,12 @@ const DocumentList = ({ onAddNew, onViewDocument }: DocumentListProps) => {
     return matchesSearch && matchesCategory;
   });
 
-  // Format file size to KB, MB, etc.
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + " B";
     else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
     else return (bytes / 1048576).toFixed(1) + " MB";
   };
 
-  // Format date to locale format
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("sv-SE", {
       year: "numeric",
@@ -117,10 +109,9 @@ const DocumentList = ({ onAddNew, onViewDocument }: DocumentListProps) => {
     });
   };
 
-  // Get appropriate icon for file type
   const getFileIcon = (fileType: string) => {
     if (fileType.includes("pdf")) {
-      return <FilePdf className="h-10 w-10 text-red-500" />;
+      return <FileIcon className="h-10 w-10 text-red-500" />;
     } else if (fileType.includes("spreadsheet") || fileType.includes("excel")) {
       return <FileSpreadsheet className="h-10 w-10 text-green-600" />;
     } else if (fileType.includes("word") || fileType.includes("document")) {
@@ -134,13 +125,10 @@ const DocumentList = ({ onAddNew, onViewDocument }: DocumentListProps) => {
     setIsDeleting(id);
     
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Filter out the deleted document
       const updatedDocs = documents.filter(doc => doc.id !== id);
       
-      // Update state and localStorage
       setDocuments(updatedDocs);
       localStorage.setItem("documents", JSON.stringify(updatedDocs));
       
@@ -155,7 +143,6 @@ const DocumentList = ({ onAddNew, onViewDocument }: DocumentListProps) => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Search and filters */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
@@ -194,7 +181,6 @@ const DocumentList = ({ onAddNew, onViewDocument }: DocumentListProps) => {
         </div>
       </div>
       
-      {/* Document list */}
       <div className="space-y-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
