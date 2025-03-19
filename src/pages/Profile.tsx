@@ -10,7 +10,7 @@ const Profile = () => {
   useEffect(() => {
     const token = localStorage.getItem("auth-token");
     if (!token) {
-      navigate("/");
+      navigate("/login");
     }
   }, [navigate]);
 
