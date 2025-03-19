@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -244,24 +245,26 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-3 w-full">
-                  <div className="rounded-md bg-primary/10 p-2 flex-shrink-0">
-                    <File className="h-8 w-8 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0 mr-2">
-                    <p className="font-medium truncate">{file.name}</p>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {(file.size / 1024).toFixed(1)} KB • {
-                        file.type.split("/")[1].toUpperCase()
-                      }
-                    </p>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="rounded-md bg-primary/10 p-2 flex-shrink-0">
+                      <File className="h-8 w-8 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{file.name}</p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {(file.size / 1024).toFixed(1)} KB • {
+                          file.type.split("/")[1].toUpperCase()
+                        }
+                      </p>
+                    </div>
                   </div>
                   <Button 
                     type="button" 
                     variant="ghost" 
                     size="icon" 
                     onClick={() => setFile(null)}
-                    className="rounded-full hover:bg-destructive/10 hover:text-destructive flex-shrink-0"
+                    className="rounded-full hover:bg-destructive/10 hover:text-destructive flex-shrink-0 ml-2"
                   >
                     <X className="h-4 w-4" />
                     <span className="sr-only">Ta bort fil</span>
