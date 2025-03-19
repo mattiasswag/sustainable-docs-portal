@@ -33,6 +33,19 @@ const Documents = () => {
     }
   }, [navigate]);
 
+  // Load accounting periods to set default if needed
+  useEffect(() => {
+    if (!currentPeriod) {
+      const savedPeriods = localStorage.getItem("accounting-periods");
+      if (savedPeriods) {
+        const periods = JSON.parse(savedPeriods);
+        if (periods.length > 0) {
+          setCurrentPeriod(periods[0].id);
+        }
+      }
+    }
+  }, [currentPeriod]);
+
   // Handle adding new document
   const handleAddNew = () => {
     setIsUploadDialogOpen(true);
@@ -47,6 +60,19 @@ const Documents = () => {
   const handleViewDocument = (document: Document) => {
     setSelectedDocument(document);
     setIsViewDialogOpen(true);
+  };
+
+  // Get current period name for display
+  const getCurrentPeriodName = () => {
+    if (!currentPeriod) return "";
+    
+    const savedPeriods = localStorage.getItem("accounting-periods");
+    if (savedPeriods) {
+      const periods = JSON.parse(savedPeriods);
+      const period = periods.find((p: any) => p.id === currentPeriod);
+      return period ? period.name : "";
+    }
+    return "";
   };
 
   return (
@@ -67,10 +93,13 @@ const Documents = () => {
         </div>
         
         <div className="w-full md:max-w-md">
-          <AccountingPeriodSelector
-            value={currentPeriod}
-            onChange={setCurrentPeriod}
-          />
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Räkenskapsperiod</label>
+            <AccountingPeriodSelector
+              value={currentPeriod}
+              onChange={setCurrentPeriod}
+            />
+          </div>
         </div>
       </div>
       
@@ -86,7 +115,8 @@ const Documents = () => {
           <DialogHeader>
             <DialogTitle>Ladda upp dokument</DialogTitle>
             <DialogDescription>
-              Ladda upp ett hållbarhetsrelaterat dokument för analys
+              Ladda upp ett hållbarhetsrelaterat dokument för räkenskapsperiod:{" "}
+              <span className="font-medium">{getCurrentPeriodName()}</span>
             </DialogDescription>
           </DialogHeader>
           
@@ -146,6 +176,22 @@ const Documents = () => {
                       : selectedDocument.fileSize < 1048576
                       ? `${(selectedDocument.fileSize / 1024).toFixed(1)} KB`
                       : `${(selectedDocument.fileSize / 1048576).toFixed(1)} MB`}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-medium text-sm">Räkenskapsperiod</h3>
+                  <p className="text-muted-foreground">
+                    {(() => {
+                      if (!selectedDocument.accountingPeriod) return "Inte specificerad";
+                      
+                      const savedPeriods = localStorage.getItem("accounting-periods");
+                      if (savedPeriods) {
+                        const periods = JSON.parse(savedPeriods);
+                        const period = periods.find((p: any) => p.id === selectedDocument.accountingPeriod);
+                        return period ? period.name : "Okänd period";
+                      }
+                      return "Okänd period";
+                    })()}
                   </p>
                 </div>
               </div>

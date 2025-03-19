@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +48,19 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const getPeriodInfo = () => {
+    if (!accountingPeriod) return null;
+    
+    const savedPeriods = localStorage.getItem("accounting-periods");
+    if (savedPeriods) {
+      const periods = JSON.parse(savedPeriods);
+      return periods.find((p: any) => p.id === accountingPeriod);
+    }
+    return null;
+  };
+
+  const periodInfo = getPeriodInfo();
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -107,7 +119,7 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!category || !file) {
+    if (!category || !file || !accountingPeriod) {
       toast.error("Vänligen välj en kategori och ladda upp en fil.");
       return;
     }
@@ -126,7 +138,7 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
         fileSize: file.size,
         fileType: file.type,
         uploadDate: new Date().toISOString(),
-        accountingPeriod: accountingPeriod || "default",
+        accountingPeriod: accountingPeriod,
         file
       };
       
@@ -156,6 +168,16 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {periodInfo && (
+        <div className="bg-muted p-3 rounded-md">
+          <p className="text-sm font-medium">Dokument laddas upp till räkenskapsperiod:</p>
+          <p className="text-sm">{periodInfo.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {new Date(periodInfo.startDate).toLocaleDateString()} - {new Date(periodInfo.endDate).toLocaleDateString()}
+          </p>
+        </div>
+      )}
+      
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">          
           <div className="space-y-2">
@@ -270,7 +292,7 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
             </Button>
           )}
           
-          <Button type="submit" disabled={isUploading || !file}>
+          <Button type="submit" disabled={isUploading || !file || !accountingPeriod}>
             {isUploading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
