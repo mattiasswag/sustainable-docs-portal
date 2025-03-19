@@ -21,7 +21,9 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend 
+  Legend,
+  LineChart,
+  Line
 } from "recharts";
 import {
   BarChart2,
@@ -33,8 +35,11 @@ import {
   FileText,
   Loader2,
   Download,
-  RefreshCw
+  RefreshCw,
+  TrendingUp,
+  Lightbulb
 } from "lucide-react";
+import { ChartContainer, ChartTooltipContent, ChartTooltip } from "@/components/ui/chart";
 
 interface Document {
   id: string;
@@ -64,6 +69,13 @@ interface AnalysisSummary {
   metrics: KeyMetric[];
   insights: string[];
   lastUpdated: string;
+}
+
+interface PredictiveData {
+  year: string;
+  co2: number;
+  energy: number;
+  gender: number;
 }
 
 const CATEGORY_COLORS = {
@@ -162,11 +174,30 @@ const generateMockInsights = (): string[] => [
   "Rekommendation: Utveckla mer detaljerade policyer kring mänskliga rättigheter i leverantörskedjan."
 ];
 
+const generatePredictiveData = (): PredictiveData[] => [
+  { year: "2024", co2: 12.5, energy: 68, gender: 42 },
+  { year: "2025", co2: 11.2, energy: 72, gender: 45 },
+  { year: "2026", co2: 10.1, energy: 76, gender: 47 },
+  { year: "2027", co2: 9.0, energy: 80, gender: 49 },
+  { year: "2028", co2: 8.2, energy: 85, gender: 50 }
+];
+
+const generatePredictiveInsights = (): string[] => [
+  "Baserat på nuvarande trender förväntas CO2-utsläppen minska med 34% fram till 2028.",
+  "Användningen av förnybar energi förväntas öka till 85% år 2028, vilket överträffar branschgenomsnittet.",
+  "Könsfördelningen förväntas bli jämn (50/50) omkring år 2028 om nuvarande utveckling fortsätter.",
+  "För att accelerera minskningen av CO2-utsläpp rekommenderas ytterligare investeringar i energieffektivisering.",
+  "Den förväntade utvecklingen för leverantörskedjan visar en förbättringspotential som kan kräva ytterligare åtgärder."
+];
+
 const AnalysisView = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisSummary | null>(null);
+  const [predictiveData, setPredictiveData] = useState<PredictiveData[]>([]);
+  const [predictiveInsights, setPredictiveInsights] = useState<string[]>([]);
+  const [showPredictive, setShowPredictive] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -181,8 +212,12 @@ const AnalysisView = () => {
         
         if (docs.length > 0) {
           await generateAnalysis(docs);
+          setPredictiveData(generatePredictiveData());
+          setPredictiveInsights(generatePredictiveInsights());
         } else {
           setAnalysis(null);
+          setPredictiveData([]);
+          setPredictiveInsights([]);
         }
       } catch (error) {
         console.error("Error loading data:", error);
@@ -237,6 +272,8 @@ const AnalysisView = () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       await generateAnalysis(documents);
+      setPredictiveData(generatePredictiveData());
+      setPredictiveInsights(generatePredictiveInsights());
       
       toast.success("Analysen har uppdaterats");
     } catch (error) {
@@ -277,6 +314,15 @@ const AnalysisView = () => {
     );
   };
 
+  const handleTogglePredictive = () => {
+    setShowPredictive(prev => !prev);
+    
+    if (!showPredictive && predictiveData.length === 0) {
+      setPredictiveData(generatePredictiveData());
+      setPredictiveInsights(generatePredictiveInsights());
+    }
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       {isLoading ? (
@@ -309,6 +355,14 @@ const AnalysisView = () => {
             </div>
             
             <div className="flex gap-2">
+              <Button
+                variant={showPredictive ? "default" : "outline"}
+                onClick={handleTogglePredictive}
+              >
+                <TrendingUp className="h-4 w-4 mr-2" />
+                {showPredictive ? "Dölj prediktiv analys" : "Visa prediktiv analys"}
+              </Button>
+              
               <Button
                 variant="outline"
                 onClick={() => toast.info("Nedladdningsfunktionen är inte implementerad i denna demo.")}
@@ -610,6 +664,151 @@ const AnalysisView = () => {
               </div>
             </CardFooter>
           </Card>
+          
+          {showPredictive && predictiveData.length > 0 && (
+            <>
+              <div className="mt-6">
+                <h2 className="text-2xl font-bold tracking-tight flex items-center">
+                  <TrendingUp className="h-5 w-5 mr-2 text-primary" />
+                  Prediktiv Analys
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  Framtidsprognoser baserade på nuvarande hållbarhetsdata
+                </p>
+              </div>
+              
+              <Card className="bg-card overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-2 text-primary" />
+                    Långsiktig trendprognos (2024-2028)
+                  </CardTitle>
+                  <CardDescription>
+                    Förväntad utveckling av nyckeltal över tid
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={predictiveData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="year" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="co2" 
+                          name="CO2-utsläpp (ton)" 
+                          stroke={CATEGORY_COLORS.environment} 
+                          activeDot={{ r: 8 }} 
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="energy" 
+                          name="Förnybar energi (%)" 
+                          stroke={CATEGORY_COLORS.governance} 
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="gender" 
+                          name="Könsfördelning (%)" 
+                          stroke={CATEGORY_COLORS.gender_equality} 
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Lightbulb className="h-5 w-5 mr-2 text-primary" />
+                    Prediktiva insikter och rekommendationer
+                  </CardTitle>
+                  <CardDescription>
+                    AI-genererade prognoser och rekommendationer baserade på trendanalys
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-4">
+                    {predictiveInsights.map((insight, index) => (
+                      <li key={index} className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                          <TrendingUp className="h-4 w-4" />
+                        </div>
+                        <p className="text-foreground">{insight}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-card border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Lightbulb className="h-5 w-5 mr-2 text-primary" />
+                    CSRD-prognos
+                  </CardTitle>
+                  <CardDescription>
+                    Förväntad CSRD-efterlevnad baserad på nuvarande utveckling
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium">Förväntad efterlevnad 2025</span>
+                        <span className="font-bold">95%</span>
+                      </div>
+                      <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary" 
+                          style={{ width: "95%" }}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Baserat på nuvarande trend och förväntade lagkrav
+                      </p>
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Strategiska rekommendationer</h4>
+                      <ul className="space-y-3">
+                        <li className="flex items-start space-x-3">
+                          <div className="flex-shrink-0 h-5 w-5 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 text-xs">
+                            ✓
+                          </div>
+                          <p className="text-sm">
+                            Prioritera utveckling av klimatmål för att möta framtida CSRD-krav.
+                          </p>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                          <div className="flex-shrink-0 h-5 w-5 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 text-xs">
+                            ✓
+                          </div>
+                          <p className="text-sm">
+                            Investera ytterligare i datainsamling kring leverantörskedjan inför CSRD 2025.
+                          </p>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                          <div className="flex-shrink-0 h-5 w-5 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 text-xs">
+                            ✓
+                          </div>
+                          <p className="text-sm">
+                            Utveckla mer detaljerade beskrivningar av affärsmodellen för att uppfylla framtida rapporteringskrav.
+                          </p>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </>
       ) : null}
     </div>
@@ -617,4 +816,3 @@ const AnalysisView = () => {
 };
 
 export default AnalysisView;
-

@@ -19,7 +19,7 @@ const Analysis = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Hållbarhetsanalys</h1>
         <p className="text-muted-foreground">
-          Insikter och nyckeltal extraherade från dina dokument
+          Insikter, nyckeltal och prediktiva trender extraherade från dina dokument
         </p>
       </div>
       
