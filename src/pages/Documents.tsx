@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import DocumentUpload from "@/components/documents/DocumentUpload";
 import DocumentList from "@/components/documents/DocumentList";
 import AccountingPeriodSelector from "@/components/accounting/AccountingPeriodSelector";
-import { Plus } from "lucide-react";
 
 interface Document {
   id: string;
@@ -85,11 +83,6 @@ const Documents = () => {
               Hantera hållbarhetsrelaterade dokument
             </p>
           </div>
-          
-          <Button onClick={handleAddNew}>
-            <Plus className="h-4 w-4 mr-2" />
-            Ladda upp
-          </Button>
         </div>
         
         <div className="w-full md:max-w-md">
