@@ -37,9 +37,9 @@ import {
   Download,
   RefreshCw,
   TrendingUp,
-  Lightbulb
+  Lightbulb,
+  Calendar
 } from "lucide-react";
-import { ChartContainer, ChartTooltipContent, ChartTooltip } from "@/components/ui/chart";
 
 interface Document {
   id: string;
@@ -50,6 +50,7 @@ interface Document {
   fileSize: number;
   fileType: string;
   uploadDate: string;
+  accountingPeriod: string;
 }
 
 interface KeyMetric {
@@ -190,7 +191,11 @@ const generatePredictiveInsights = (): string[] => [
   "Den förväntade utvecklingen för leverantörskedjan visar en förbättringspotential som kan kräva ytterligare åtgärder."
 ];
 
-const AnalysisView = () => {
+interface AnalysisViewProps {
+  accountingPeriod: string;
+}
+
+const AnalysisView = ({ accountingPeriod }: AnalysisViewProps) => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -198,37 +203,58 @@ const AnalysisView = () => {
   const [predictiveData, setPredictiveData] = useState<PredictiveData[]>([]);
   const [predictiveInsights, setPredictiveInsights] = useState<string[]>([]);
   const [showPredictive, setShowPredictive] = useState(false);
+  const [periodName, setPeriodName] = useState("");
 
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        const savedDocs = localStorage.getItem("documents");
-        const docs = savedDocs ? JSON.parse(savedDocs) : [];
-        setDocuments(docs);
-        
-        if (docs.length > 0) {
-          await generateAnalysis(docs);
-          setPredictiveData(generatePredictiveData());
-          setPredictiveInsights(generatePredictiveInsights());
-        } else {
-          setAnalysis(null);
-          setPredictiveData([]);
-          setPredictiveInsights([]);
+    if (accountingPeriod) {
+      const savedPeriods = localStorage.getItem("accounting-periods");
+      if (savedPeriods) {
+        const periods = JSON.parse(savedPeriods);
+        const period = periods.find((p: any) => p.id === accountingPeriod);
+        if (period) {
+          setPeriodName(period.name);
         }
-      } catch (error) {
-        console.error("Error loading data:", error);
-        toast.error("Ett fel uppstod vid laddning av analysdata");
-      } finally {
-        setIsLoading(false);
       }
-    };
+    }
+  }, [accountingPeriod]);
+
+  useEffect(() => {
+    if (accountingPeriod) {
+      loadData();
+    }
+  }, [accountingPeriod]);
+
+  const loadData = async () => {
+    setIsLoading(true);
     
-    loadData();
-  }, []);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const savedDocs = localStorage.getItem("documents");
+      let docs = savedDocs ? JSON.parse(savedDocs) : [];
+      
+      if (accountingPeriod) {
+        docs = docs.filter((doc: Document) => doc.accountingPeriod === accountingPeriod);
+      }
+      
+      setDocuments(docs);
+      
+      if (docs.length > 0) {
+        await generateAnalysis(docs);
+        setPredictiveData(generatePredictiveData());
+        setPredictiveInsights(generatePredictiveInsights());
+      } else {
+        setAnalysis(null);
+        setPredictiveData([]);
+        setPredictiveInsights([]);
+      }
+    } catch (error) {
+      console.error("Error loading data:", error);
+      toast.error("Ett fel uppstod vid laddning av analysdata");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const generateAnalysis = async (docs: Document[]) => {
     try {
@@ -334,7 +360,14 @@ const AnalysisView = () => {
           <CardHeader>
             <CardTitle>Ingen analys tillgänglig</CardTitle>
             <CardDescription>
-              Det finns inga dokument att analysera. Ladda upp hållbarhetsdokument för att skapa en analys.
+              {accountingPeriod ? (
+                <>
+                  Det finns inga dokument för räkenskapsperioden "{periodName}". 
+                  Ladda upp hållbarhetsdokument för denna period för att skapa en analys.
+                </>
+              ) : (
+                "Välj en räkenskapsperiod och ladda upp hållbarhetsdokument för att skapa en analys."
+              )}
             </CardDescription>
           </CardHeader>
           <CardFooter>
@@ -349,9 +382,11 @@ const AnalysisView = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-2xl font-bold tracking-tight">Hållbarhetsanalys</h2>
-              <p className="text-muted-foreground">
-                Senast uppdaterad: {formatDate(analysis.lastUpdated)}
-              </p>
+              <div className="flex items-center text-muted-foreground">
+                <Calendar className="h-4 w-4 mr-1" />
+                <span className="font-medium mr-2">{periodName}</span> | 
+                <span className="ml-2">Senast uppdaterad: {formatDate(analysis.lastUpdated)}</span>
+              </div>
             </div>
             
             <div className="flex gap-2">
@@ -457,362 +492,5 @@ const AnalysisView = () => {
                 <CardTitle className="flex items-center">
                   <PieChartIcon className="h-5 w-5 mr-2 text-primary" />
                   Dokumentfördelning
-                </CardTitle>
-                <CardDescription>
-                  Fördelning av dokument per hållbarhetskategori
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={analysis.categories}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => {
-                          const displayName = typeof name === 'string' ? name.split('_').join(' ') : name;
-                          return `${displayName} (${(percent * 100).toFixed(0)}%)`;
-                        }}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="count"
-                      >
-                        {analysis.categories.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={getCategoryColor(entry.name)} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        formatter={(value, name) => {
-                          return [value, typeof name === 'string' ? name.split('_').join(' ') : name];
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card overflow-hidden">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart2 className="h-5 w-5 mr-2 text-primary" />
-                  Nyckeltal
-                </CardTitle>
-                <CardDescription>
-                  Viktiga hållbarhetsmätetal extraherade från dokumenten
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={analysis.metrics.map(m => ({ 
-                        name: m.name.length > 20 ? m.name.substring(0, 20) + '...' : m.name,
-                        value: m.value, 
-                        category: m.category 
-                      }))}
-                      layout="vertical"
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={150} />
-                      <Tooltip 
-                        formatter={(value, name, props) => {
-                          const metric = analysis.metrics.find(m => m.name.startsWith(props.payload.name.split('...')[0]));
-                          return [`${value} ${metric?.unit}`, metric?.name];
-                        }}
-                      />
-                      <Legend />
-                      <Bar dataKey="value" name="Värde">
-                        {analysis.metrics.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={getCategoryColor(entry.category)} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Card className="bg-card">
-            <CardHeader>
-              <CardTitle>Detaljerade mätvärden</CardTitle>
-              <CardDescription>
-                Hållbarhetsmätetal extraherade från dina dokument
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {analysis.metrics.map((metric) => (
-                  <div key={metric.id} className="flex space-x-4 p-4 border rounded-lg">
-                    <div className="flex-shrink-0">
-                      <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${getCategoryColor(metric.category)}20` }}>
-                        {getCategoryIcon(metric.category)}
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <h4 className="font-medium">{metric.name}</h4>
-                      <div className="text-2xl font-bold">
-                        {metric.value} <span className="text-sm font-normal">{metric.unit}</span>
-                      </div>
-                      <div className="text-sm">
-                        {getTrendIndicator(metric.trend, metric.changePercentage)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-card">
-            <CardHeader>
-              <CardTitle>Insikter och rekommendationer</CardTitle>
-              <CardDescription>
-                AI-genererade insikter baserade på dina hållbarhetsdokument
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-4">
-                {analysis.insights.map((insight, index) => (
-                  <li key={index} className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                      {index + 1}
-                    </div>
-                    <p className="text-foreground">{insight}</p>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-card border-primary/20">
-            <CardHeader className="pb-2">
-              <CardTitle>CSRD-efterlevnad</CardTitle>
-              <CardDescription>
-                Status för efterlevnad av Corporate Sustainability Reporting Directive
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">Total efterlevnad</span>
-                    <span className="font-bold">{Math.round(analysis.completeness * 0.8)}%</span>
-                  </div>
-                  <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary" 
-                      style={{ width: `${Math.round(analysis.completeness * 0.8)}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Baserat på dokumentens täckning av CSRD-krav
-                  </p>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-4">
-                  <h4 className="font-medium">Rekommenderade åtgärder</h4>
-                  <ul className="space-y-3">
-                    <li className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 h-5 w-5 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 text-xs">
-                        !
-                      </div>
-                      <p className="text-sm">
-                        Komplettera med mer detaljerad information om leverantörskedjan och due diligence-processer.
-                      </p>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 h-5 w-5 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 text-xs">
-                        !
-                      </div>
-                      <p className="text-sm">
-                        Utveckla mer konkreta klimatmål med tydliga åtgärdsplaner.
-                      </p>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 h-5 w-5 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 text-xs">
-                        !
-                      </div>
-                      <p className="text-sm">
-                        Inkludera mer information om affärsmodellen och hur hållbarhet integreras i den.
-                      </p>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="border-t bg-muted/20 px-6 py-4">
-              <div className="flex items-center justify-between w-full">
-                <p className="text-sm text-muted-foreground">
-                  Förberedd för CSRD-rapportering 2024
-                </p>
-                <Button 
-                  variant="outline"
-                  onClick={() => toast.info("Funktionen för att generera CSRD-rapport är inte implementerad i denna demo.")}
-                  size="sm"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Generera CSRD-underlag
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
-          
-          {showPredictive && predictiveData.length > 0 && (
-            <>
-              <div className="mt-6">
-                <h2 className="text-2xl font-bold tracking-tight flex items-center">
-                  <TrendingUp className="h-5 w-5 mr-2 text-primary" />
-                  Prediktiv Analys
-                </h2>
-                <p className="text-muted-foreground mb-6">
-                  Framtidsprognoser baserade på nuvarande hållbarhetsdata
-                </p>
-              </div>
-              
-              <Card className="bg-card overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <TrendingUp className="h-5 w-5 mr-2 text-primary" />
-                    Långsiktig trendprognos (2024-2028)
-                  </CardTitle>
-                  <CardDescription>
-                    Förväntad utveckling av nyckeltal över tid
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={predictiveData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="year" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="co2" 
-                          name="CO2-utsläpp (ton)" 
-                          stroke={CATEGORY_COLORS.environment} 
-                          activeDot={{ r: 8 }} 
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="energy" 
-                          name="Förnybar energi (%)" 
-                          stroke={CATEGORY_COLORS.governance} 
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="gender" 
-                          name="Könsfördelning (%)" 
-                          stroke={CATEGORY_COLORS.gender_equality} 
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Lightbulb className="h-5 w-5 mr-2 text-primary" />
-                    Prediktiva insikter och rekommendationer
-                  </CardTitle>
-                  <CardDescription>
-                    AI-genererade prognoser och rekommendationer baserade på trendanalys
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-4">
-                    {predictiveInsights.map((insight, index) => (
-                      <li key={index} className="flex items-start space-x-3">
-                        <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                          <TrendingUp className="h-4 w-4" />
-                        </div>
-                        <p className="text-foreground">{insight}</p>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-card border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Lightbulb className="h-5 w-5 mr-2 text-primary" />
-                    CSRD-prognos
-                  </CardTitle>
-                  <CardDescription>
-                    Förväntad CSRD-efterlevnad baserad på nuvarande utveckling
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">Förväntad efterlevnad 2025</span>
-                        <span className="font-bold">95%</span>
-                      </div>
-                      <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary" 
-                          style={{ width: "95%" }}
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Baserat på nuvarande trend och förväntade lagkrav
-                      </p>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div className="space-y-4">
-                      <h4 className="font-medium">Strategiska rekommendationer</h4>
-                      <ul className="space-y-3">
-                        <li className="flex items-start space-x-3">
-                          <div className="flex-shrink-0 h-5 w-5 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 text-xs">
-                            ✓
-                          </div>
-                          <p className="text-sm">
-                            Prioritera utveckling av klimatmål för att möta framtida CSRD-krav.
-                          </p>
-                        </li>
-                        <li className="flex items-start space-x-3">
-                          <div className="flex-shrink-0 h-5 w-5 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 text-xs">
-                            ✓
-                          </div>
-                          <p className="text-sm">
-                            Investera ytterligare i datainsamling kring leverantörskedjan inför CSRD 2025.
-                          </p>
-                        </li>
-                        <li className="flex items-start space-x-3">
-                          <div className="flex-shrink-0 h-5 w-5 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 text-xs">
-                            ✓
-                          </div>
-                          <p className="text-sm">
-                            Utveckla mer detaljerade beskrivningar av affärsmodellen för att uppfylla framtida rapporteringskrav.
-                          </p>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </>
-      ) : null}
-    </div>
-  );
-};
+                Card
 
-export default AnalysisView;
