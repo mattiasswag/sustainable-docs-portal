@@ -186,7 +186,7 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
               Kategori <span className="text-destructive">*</span>
             </Label>
             <Select value={category} onValueChange={setCategory} required>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Välj en kategori" />
               </SelectTrigger>
               <SelectContent>
@@ -245,17 +245,19 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-4 w-full">
-                  <div className="rounded-md bg-primary/10 p-2 flex-shrink-0">
-                    <File className="h-8 w-8 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {(file.size / 1024).toFixed(1)} KB • {
-                        file.type.split("/")[1].toUpperCase()
-                      }
-                    </p>
+                <div className="flex items-center justify-between w-full gap-4">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="rounded-md bg-primary/10 p-2 flex-shrink-0">
+                      <File className="h-8 w-8 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{file.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {(file.size / 1024).toFixed(1)} KB • {
+                          file.type.split("/")[1].toUpperCase()
+                        }
+                      </p>
+                    </div>
                   </div>
                   <Button 
                     type="button" 
