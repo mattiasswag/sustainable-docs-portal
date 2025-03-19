@@ -29,6 +29,11 @@ const Analysis = () => {
     }
   }, [currentPeriod]);
 
+  // Handle navigation to Documents page
+  const handleNavigateToDocuments = () => {
+    navigate("/documents");
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -52,7 +57,10 @@ const Analysis = () => {
         </div>
       </div>
       
-      <AnalysisView accountingPeriod={currentPeriod} />
+      <AnalysisView 
+        accountingPeriod={currentPeriod} 
+        onNavigateToDocuments={handleNavigateToDocuments}
+      />
     </div>
   );
 };

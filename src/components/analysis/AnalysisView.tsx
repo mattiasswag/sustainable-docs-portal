@@ -194,9 +194,10 @@ const generatePredictiveInsights = (): string[] => [
 
 interface AnalysisViewProps {
   accountingPeriod: string;
+  onNavigateToDocuments?: () => void;
 }
 
-const AnalysisView = ({ accountingPeriod }: AnalysisViewProps) => {
+const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewProps) => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -372,7 +373,7 @@ const AnalysisView = ({ accountingPeriod }: AnalysisViewProps) => {
             </CardDescription>
           </CardHeader>
           <CardFooter>
-            <Button variant="outline" onClick={() => toast.info("Navigera till 'Dokument' för att ladda upp filer.")}>
+            <Button variant="outline" onClick={onNavigateToDocuments}>
               <FileText className="h-4 w-4 mr-2" />
               Ladda upp dokument
             </Button>
