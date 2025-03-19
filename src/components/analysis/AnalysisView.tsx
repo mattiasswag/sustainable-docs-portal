@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -492,5 +493,209 @@ const AnalysisView = ({ accountingPeriod }: AnalysisViewProps) => {
                 <CardTitle className="flex items-center">
                   <PieChartIcon className="h-5 w-5 mr-2 text-primary" />
                   Dokumentfördelning
-                Card
+                </CardTitle>
+                <CardDescription>
+                  Fördelning av dokument per hållbarhetskategori
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {analysis.categories.length > 0 ? (
+                  <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={analysis.categories}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={120}
+                          fill="#8884d8"
+                          dataKey="count"
+                          nameKey="name"
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {analysis.categories.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={getCategoryColor(entry.name)} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    Ingen dokumentdata tillgänglig
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-card">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Lightbulb className="h-5 w-5 mr-2 text-primary" />
+                  Nyckelinsikter
+                </CardTitle>
+                <CardDescription>
+                  AI-genererade insikter baserade på dina dokument
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {analysis.insights.map((insight, index) => (
+                    <li key={index} className="flex">
+                      <span className="text-primary font-bold mr-2">•</span>
+                      <span>{insight}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <BarChart2 className="h-5 w-5 mr-2 text-primary" />
+                Detaljerade mätvärden
+              </CardTitle>
+              <CardDescription>
+                Nyckeltal extraherade från dina hållbarhetsdokument
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {analysis.metrics.map((metric) => (
+                  <Card key={metric.id} className="bg-card/50">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full flex items-center justify-center mr-2" style={{ backgroundColor: getCategoryColor(metric.category) }}>
+                            {getCategoryIcon(metric.category)}
+                          </div>
+                          <CardTitle className="text-base">{metric.name}</CardTitle>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-end justify-between">
+                        <div className="text-3xl font-bold">
+                          {typeof metric.value === 'number' ? 
+                            metric.value % 1 === 0 ? 
+                              metric.value : 
+                              metric.value.toFixed(1) : 
+                            metric.value}
+                          <span className="text-sm ml-1 font-normal text-muted-foreground">{metric.unit}</span>
+                        </div>
+                        <div className="text-sm">
+                          {getTrendIndicator(metric.trend, metric.changePercentage)}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {showPredictive && (
+            <>
+              <Separator className="my-8" />
+              
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight mb-2">Prediktiv analys</h2>
+                <p className="text-muted-foreground mb-6">
+                  AI-genererad prognos baserad på nuvarande data och trender
+                </p>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  <Card className="bg-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <TrendingUp className="h-5 w-5 mr-2 text-primary" />
+                        Prognostiserade trender
+                      </CardTitle>
+                      <CardDescription>
+                        Förväntad utveckling av nyckeltal över tid
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[350px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={predictiveData}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="year" />
+                            <YAxis yAxisId="left" />
+                            <YAxis yAxisId="right" orientation="right" />
+                            <Tooltip />
+                            <Legend />
+                            <Line
+                              yAxisId="left"
+                              type="monotone"
+                              dataKey="co2"
+                              name="CO2-utsläpp (ton)"
+                              stroke="#ff7300"
+                              activeDot={{ r: 8 }}
+                            />
+                            <Line
+                              yAxisId="left"
+                              type="monotone"
+                              dataKey="energy"
+                              name="Förnybar energi (%)"
+                              stroke="#82ca9d"
+                            />
+                            <Line
+                              yAxisId="right"
+                              type="monotone"
+                              dataKey="gender"
+                              name="Könsfördelning (%)"
+                              stroke="#8884d8"
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Lightbulb className="h-5 w-5 mr-2 text-primary" />
+                        Prediktiva insikter
+                      </CardTitle>
+                      <CardDescription>
+                        AI-baserade prognoser och rekommendationer
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {predictiveInsights.map((insight, index) => (
+                          <li key={index} className="flex">
+                            <span className="text-primary font-bold mr-2">•</span>
+                            <span>{insight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <div className="bg-muted p-4 rounded-lg">
+                  <p className="text-sm text-muted-foreground italic">
+                    OBS: Prediktiva data är baserade på historisk utveckling och trender. 
+                    Faktiska resultat kan variera beroende på framtida åtgärder och omständigheter.
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+        </>
+      ) : null}
+    </div>
+  );
+};
 
+export default AnalysisView;
