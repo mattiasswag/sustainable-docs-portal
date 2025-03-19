@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,10 +55,18 @@ interface Document {
 interface DocumentListProps {
   onAddNew?: () => void;
   onViewDocument?: (document: Document) => void;
+  onDeleteDocument?: (id: string) => void;
+  documents?: Document[];
   accountingPeriod?: string;
 }
 
-const DocumentList = ({ onAddNew, onViewDocument, accountingPeriod = "default" }: DocumentListProps) => {
+const DocumentList = ({ 
+  onAddNew, 
+  onViewDocument, 
+  onDeleteDocument,
+  documents: propDocuments,
+  accountingPeriod = "default" 
+}: DocumentListProps) => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -71,6 +78,12 @@ const DocumentList = ({ onAddNew, onViewDocument, accountingPeriod = "default" }
       setIsLoading(true);
       
       try {
+        if (propDocuments) {
+          setDocuments(propDocuments);
+          setIsLoading(false);
+          return;
+        }
+        
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const savedDocs = localStorage.getItem("documents");
@@ -86,7 +99,7 @@ const DocumentList = ({ onAddNew, onViewDocument, accountingPeriod = "default" }
     };
     
     loadDocuments();
-  }, []);
+  }, [propDocuments]);
 
   const filteredDocuments = documents.filter(doc => {
     // Filter by accounting period first
@@ -129,14 +142,20 @@ const DocumentList = ({ onAddNew, onViewDocument, accountingPeriod = "default" }
     setIsDeleting(id);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const updatedDocs = documents.filter(doc => doc.id !== id);
-      
-      setDocuments(updatedDocs);
-      localStorage.setItem("documents", JSON.stringify(updatedDocs));
-      
-      toast.success("Dokumentet har tagits bort");
+      // If parent provided a delete handler, use it
+      if (onDeleteDocument) {
+        await onDeleteDocument(id);
+      } else {
+        // Otherwise handle internally
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        const updatedDocs = documents.filter(doc => doc.id !== id);
+        
+        setDocuments(updatedDocs);
+        localStorage.setItem("documents", JSON.stringify(updatedDocs));
+        
+        toast.success("Dokumentet har tagits bort");
+      }
     } catch (error) {
       console.error("Delete error:", error);
       toast.error("Ett fel uppstod vid borttagning av dokumentet");

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import DocumentUpload from "@/components/documents/DocumentUpload";
 import DocumentList from "@/components/documents/DocumentList";
 import AccountingPeriodSelector from "@/components/accounting/AccountingPeriodSelector";
+import { toast } from "sonner";
 
 interface Document {
   id: string;
@@ -21,6 +23,7 @@ const Documents = () => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [currentPeriod, setCurrentPeriod] = useState("");
+  const [documents, setDocuments] = useState<Document[]>([]);
   const navigate = useNavigate();
 
   // Check authentication
@@ -31,8 +34,17 @@ const Documents = () => {
     }
   }, [navigate]);
 
-  // Load accounting periods to set default if needed
+  // Load documents and accounting periods
   useEffect(() => {
+    const loadDocuments = () => {
+      const savedDocs = localStorage.getItem("documents");
+      if (savedDocs) {
+        setDocuments(JSON.parse(savedDocs));
+      }
+    };
+
+    loadDocuments();
+
     if (!currentPeriod) {
       const savedPeriods = localStorage.getItem("accounting-periods");
       if (savedPeriods) {
@@ -51,13 +63,41 @@ const Documents = () => {
 
   // Handle upload completion
   const handleUploadComplete = () => {
+    // Refresh documents list after upload
+    const savedDocs = localStorage.getItem("documents");
+    if (savedDocs) {
+      setDocuments(JSON.parse(savedDocs));
+    }
     setIsUploadDialogOpen(false);
+    toast.success("Dokumentet har laddats upp");
   };
 
   // Handle viewing document details
   const handleViewDocument = (document: Document) => {
     setSelectedDocument(document);
     setIsViewDialogOpen(true);
+  };
+
+  // Handle document deletion
+  const handleDeleteDocument = async (id: string) => {
+    try {
+      // Filter out the deleted document
+      const updatedDocs = documents.filter(doc => doc.id !== id);
+      
+      // Update state and localStorage
+      setDocuments(updatedDocs);
+      localStorage.setItem("documents", JSON.stringify(updatedDocs));
+      
+      // Close view dialog if the deleted document was selected
+      if (selectedDocument && selectedDocument.id === id) {
+        setIsViewDialogOpen(false);
+      }
+      
+      toast.success("Dokumentet har tagits bort");
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Ett fel uppstod vid borttagning av dokumentet");
+    }
   };
 
   // Get current period name for display
@@ -99,6 +139,8 @@ const Documents = () => {
       <DocumentList 
         onAddNew={handleAddNew}
         onViewDocument={handleViewDocument}
+        onDeleteDocument={handleDeleteDocument}
+        documents={documents}
         accountingPeriod={currentPeriod}
       />
       
@@ -189,13 +231,22 @@ const Documents = () => {
                 </div>
               </div>
               
-              <div className="pt-2">
+              <div className="pt-2 flex space-x-3">
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="flex-1"
                   onClick={() => setIsViewDialogOpen(false)}
                 >
                   Stäng
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => {
+                    handleDeleteDocument(selectedDocument.id);
+                  }}
+                >
+                  Ta bort
                 </Button>
               </div>
             </div>
