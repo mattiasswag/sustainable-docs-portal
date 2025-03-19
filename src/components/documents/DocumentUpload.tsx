@@ -252,11 +252,14 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{file.name}</p>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {(file.size / 1024).toFixed(1)} KB • {
-                          file.type.split("/")[1].toUpperCase()
-                        }
-                      </p>
+                      <div className="space-y-0.5">
+                        <p className="text-sm text-muted-foreground">
+                          {(file.size / 1024).toFixed(1)} KB
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {file.type.split("/")[1].toUpperCase()}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   <Button 
