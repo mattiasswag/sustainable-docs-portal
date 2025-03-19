@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -857,4 +858,66 @@ const AnalysisView = ({ accountingPeriod, onNavigateToDocuments }: AnalysisViewP
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="year" />
                             <YAxis yAxisId="left" />
-                            <YAxis yAxisId="right" orientation="right
+                            <YAxis yAxisId="right" orientation="right" />
+                            <Tooltip />
+                            <Legend />
+                            <Line
+                              yAxisId="left"
+                              type="monotone"
+                              dataKey="co2"
+                              name="CO2-utsläpp (ton)"
+                              stroke="#ff7300"
+                              activeDot={{ r: 8 }}
+                            />
+                            <Line
+                              yAxisId="left"
+                              type="monotone"
+                              dataKey="energy"
+                              name="Förnybar energi (%)"
+                              stroke="#82ca9d"
+                            />
+                            <Line
+                              yAxisId="right"
+                              type="monotone"
+                              dataKey="gender"
+                              name="Könsfördelning (%)"
+                              stroke="#8884d8"
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Lightbulb className="h-5 w-5 mr-2 text-primary" />
+                        Prediktiva insikter
+                      </CardTitle>
+                      <CardDescription>
+                        AI-genererade framtidsprognoser
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {predictiveInsights.map((insight, index) => (
+                          <li key={index} className="flex">
+                            <span className="text-primary font-bold mr-2">•</span>
+                            <span>{insight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </>
+          )}
+        </>
+      ) : null}
+    </div>
+  );
+};
+
+export default AnalysisView;
