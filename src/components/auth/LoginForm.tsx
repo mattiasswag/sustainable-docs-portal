@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { User, Lock, Loader2 } from "lucide-react";
+import { authStateChanged } from "@/components/Navbar";
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -45,6 +46,9 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
           name: "Demo Användare",
           company: ""
         }));
+        
+        // Dispatch auth state change event
+        window.dispatchEvent(authStateChanged);
         
         toast.success("Inloggning lyckades!");
         

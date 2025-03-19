@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,9 @@ import {
   LogOut
 } from "lucide-react";
 
+// Create a custom event for auth state changes
+export const authStateChanged = new Event('authStateChanged');
+
 const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -24,10 +28,28 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Simulate auth check - would use a real auth hook in production
-  useEffect(() => {
+  // Check auth status function that can be reused
+  const checkAuthStatus = () => {
     const token = localStorage.getItem("auth-token");
     setIsLoggedIn(!!token);
+  };
+
+  // Initial auth check on mount
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  // Listen for auth state changes via custom event
+  useEffect(() => {
+    const handleAuthChange = () => {
+      checkAuthStatus();
+    };
+    
+    window.addEventListener('authStateChanged', handleAuthChange);
+    
+    return () => {
+      window.removeEventListener('authStateChanged', handleAuthChange);
+    };
   }, []);
 
   // Handle scroll effect for navbar
@@ -55,6 +77,9 @@ const Navbar = () => {
     localStorage.clear();
     
     setIsLoggedIn(false);
+    
+    // Dispatch auth state change event
+    window.dispatchEvent(authStateChanged);
     
     // Show confirmation toast
     toast({
