@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -250,13 +249,13 @@ const DocumentUpload = ({ onUploadComplete, onCancel, accountingPeriod }: Docume
                     <div className="rounded-md bg-primary/10 p-2 flex-shrink-0">
                       <File className="h-8 w-8 text-primary" />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 max-w-full">
                       <p className="font-medium truncate">{file.name}</p>
-                      <div className="space-y-0.5">
-                        <p className="text-sm text-muted-foreground">
+                      <div className="space-y-0.5 max-w-full">
+                        <p className="text-sm text-muted-foreground truncate">
                           {(file.size / 1024).toFixed(1)} KB
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground truncate">
                           {file.type.split("/")[1].toUpperCase()}
                         </p>
                       </div>
