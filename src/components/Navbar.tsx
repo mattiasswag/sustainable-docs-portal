@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ui/ThemeProvider";
+import { useToast } from "@/hooks/use-toast"; 
 import { 
   Moon, 
   Sun, 
@@ -21,6 +22,8 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Simulate auth check - would use a real auth hook in production
   useEffect(() => {
@@ -47,13 +50,23 @@ const Navbar = () => {
     setTheme(theme === "light" ? "dark" : "light");
   };
 
-  // Simulate logout
+  // Updated logout function with proper feedback and navigation
   const handleLogout = () => {
+    // Clear all authentication data
     localStorage.removeItem("auth-token");
     localStorage.removeItem("user-data");
+    localStorage.removeItem("company-data");
     setIsLoggedIn(false);
-    // Force reload to clear state
-    window.location.href = "/";
+    
+    // Show confirmation toast
+    toast({
+      title: "Utloggad",
+      description: "Du har loggats ut från systemet",
+      duration: 3000,
+    });
+    
+    // Redirect to home page
+    navigate("/");
   };
 
   return (
@@ -107,6 +120,15 @@ const Navbar = () => {
                   <BarChart2 className="w-4 h-4 mr-2" />
                   Analys
                 </NavLink>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleLogout}
+                  className="flex items-center text-sm font-medium ml-2"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logga ut
+                </Button>
               </>
             ) : (
               <NavLink to="/login" active={location.pathname === "/login"}>
@@ -133,9 +155,10 @@ const Navbar = () => {
                 size="icon" 
                 onClick={handleLogout}
                 className="rounded-full hover:bg-muted transition-all duration-300 md:hidden"
+                title="Logga ut"
               >
                 <LogOut className="h-5 w-5" />
-                <span className="sr-only">Logout</span>
+                <span className="sr-only">Logga ut</span>
               </Button>
             )}
 
@@ -153,7 +176,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile navigation */}
       {isMobileMenuOpen && (
         <div className="md:hidden glass-panel m-4 animate-scale-in">
           <nav className="flex flex-col space-y-2 p-4">
@@ -196,7 +218,6 @@ const Navbar = () => {
   );
 };
 
-// Desktop NavLink component
 const NavLink = ({ to, active, children }: { to: string; active: boolean; children: React.ReactNode }) => {
   return (
     <Link
@@ -212,7 +233,6 @@ const NavLink = ({ to, active, children }: { to: string; active: boolean; childr
   );
 };
 
-// Mobile NavLink component
 const MobileNavLink = ({ to, active, children }: { to: string; active: boolean; children: React.ReactNode }) => {
   return (
     <Link
